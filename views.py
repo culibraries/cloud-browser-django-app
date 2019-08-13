@@ -11,11 +11,22 @@ import boto3
 import uuid
 
 
-class BucketList(APIView):
+class BucketListView(APIView):
     def get(self, request):
         s3 = boto3.client('s3')
         response = s3.list_buckets()
         output = []
         for bucket in response['Buckets']:
             output.append({'_id': str(uuid.uuid4()), 'name': bucket['Name']})
+        return Response(output)
+
+
+class ObjectListView(APIView):
+    def get(self, request):
+        bucketName = self.request.query_params.get('bname')
+        s3 = boto3.resource('s3')
+        getBucket = s3.Bucket(bucketName + '/')
+        output = []
+        for getBucket in getBucket.objects.all():
+            output.append({'_id': str(uuid.uuid4), 'name': getBucket['Key']})
         return Response(output)
