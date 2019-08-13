@@ -16,8 +16,8 @@ class BucketListView(APIView):
 
 
 class ObjectListView(APIView):
-    def get(self, request):
-        bucketName = self.kwargs['bname']
+    def get(self, request, bname):
+        bucketName = bname
         s3 = boto3.resource('s3')
         getBucket = s3.Bucket(bucketName + '/')
         output = []
