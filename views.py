@@ -15,8 +15,7 @@ class BucketList(APIView):
     def get(self, request):
         s3 = boto3.client('s3')
         response = s3.list_buckets()
-        output = {}
+        output = []
         for bucket in response['Buckets']:
-            output['_id'] = str(uuid.uuid4())
-            output['bucketName'] = bucket['Name']
-        return json.dumps(output)
+            output.append({'_id': str(uuid.uuid4()), 'name': bucket['Name']})
+        return Response(output)

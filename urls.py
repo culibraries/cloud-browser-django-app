@@ -4,5 +4,5 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from s3.views import BucketList
 
 urlpatterns = [
-    path('list', BucketList.as_view()),
+    path('bucket/list', BucketList.as_view()),
 ]
