@@ -41,7 +41,7 @@ class ObjectDeleteView(APIView):
                          Key=request.GET.get('key'))
         output = 'Object ' + \
             request.GET.get('bname') + '/' + \
-            request.GET.get('fname') + ' has been delete'
+            request.GET.get('key') + ' has been delete'
         return Response(output)
 
 
