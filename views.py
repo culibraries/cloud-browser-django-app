@@ -19,7 +19,19 @@ class BucketCreateView(APIView):
     def get(self, request):
         s3 = boto3.client('s3')
         s3.create_bucket(Bucket=request.GET.get('bname'))
-        output = 'Bucket' + request.GET.get('bname') + 'has been created'
+        output = 'Bucket ' + request.GET.get('bname') + ' has been created'
+        return Response(output)
+
+
+class EmptyObjectCreateView(APIView):
+    def get(self, request):
+        s3 = boto3.client('s3')
+        filename = request.GET.get('fname') + '/'
+        s3.Bucket(request.GET.get('bname')).put(
+            Key=filename, Body='', ACL='public-read')
+        output = 'Object ' + \
+            request.GET.get('bname') + '/' + \
+            request.GET.get('fname') + ' has been created'
         return Response(output)
 
 
