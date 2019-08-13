@@ -1,4 +1,3 @@
-from rest_framework import viewsets, filters
 from rest_framework.views import APIView
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework_xml.renderers import XMLRenderer
@@ -9,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import permissions
 import json
 import boto3
+import uuid
 
 
 class BucketList(APIView):
@@ -17,6 +17,6 @@ class BucketList(APIView):
         response = s3.list_buckets()
         output = {}
         for bucket in response['Buckets']:
-            output['creationDate'] = bucket['CreationDate']
+            output['_id'] = str(uuid.uuid4())
             output['bucketName'] = bucket['Name']
         return json.dumps(output)
