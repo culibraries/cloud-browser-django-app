@@ -23,15 +23,36 @@ class BucketCreateView(APIView):
         return Response(output)
 
 
-class EmptyObjectCreateView(APIView):
+class ObjectCreateView(APIView):
     def get(self, request):
         s3 = boto3.resource('s3')
-        filename = request.GET.get('fname') + '/'
         s3.Bucket(request.GET.get('bname')).put_object(
             Key=filename, Body='', ACL='public-read')
         output = 'Object ' + \
             request.GET.get('bname') + '/' + \
             request.GET.get('fname') + ' has been created'
+        return Response(output)
+
+
+class ObjectDeleteView(APIView):
+    def get(self, request):
+        s3 = boto3.resource('s3')
+        s3.Bucket(request.GET.get('bname')).delete_object(
+            Key=request.GET.get('key'))
+        output = 'Object ' + \
+            request.GET.get('bname') + '/' + \
+            request.GET.get('fname') + ' has been delete'
+        return Response(output)
+
+
+class BucketDeleteView(APIView):
+    def get(self, request):
+        s3 = boto3.client('s3')
+        s3.delete_bucket(
+            Bucket=request.GET.get('bname')
+        )
+        output = 'Bucket ' + \
+            request.GET.get('bname') + '/' + ' has been delete'
         return Response(output)
 
 
