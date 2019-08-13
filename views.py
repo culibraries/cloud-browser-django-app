@@ -16,11 +16,10 @@ class BucketListView(APIView):
 
 
 class ObjectListView(APIView):
-    def get(self, request, bname=None):
-        if bname:
-            s3 = boto3.resource('s3')
-            getBucket = s3.Bucket(bname)
-            output = []
-            for getBucket in getBucket.objects.all():
-                output.append({'name': getBucket.key})
-            return Response(output)
+    def get(self, request):
+        s3 = boto3.resource('s3')
+        getBucket = s3.Bucket(request.GET.get('bname'))
+        output = []
+        for getBucket in getBucket.objects.all():
+            output.append({'name': getBucket.key})
+        return Response(output)
