@@ -36,9 +36,9 @@ class ObjectCreateView(APIView):
 
 class ObjectDeleteView(APIView):
     def get(self, request):
-        s3 = boto3.resource('s3')
-        s3.Bucket(request.GET.get('bname')).delete_object(
-            Key=request.GET.get('key'))
+        s3 = boto3.client('s3')
+        s3.delete_object(Bucket=request.GET.get('bname'),
+                         Key=request.GET.get('key'))
         output = 'Object ' + \
             request.GET.get('bname') + '/' + \
             request.GET.get('fname') + ' has been delete'
