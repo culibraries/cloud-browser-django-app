@@ -38,8 +38,22 @@ class PresignedCreateView(APIView):
     def post(self, request):
         s3 = boto3.client('s3')
         response = s3.generate_presigned_post(request.GET.get('bname'),
-                                              request.GET.get('key'), ExpiresIn=3600)
+                                              request.GET.get('key'))
         return Response(response)
+
+
+class PresignedCreateURLView(APIView):
+    def post(self, request):
+        s3 = boto3.client('s3')
+        url = s3.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': request.GET.get('bname'),
+                'Key': request.GET.get('key')
+            },
+            ExpiresIn=request.GET.get('expires')
+        )
+        return Response(url)
 
 
 class ObjectUploadView(APIView):
