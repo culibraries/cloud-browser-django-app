@@ -30,7 +30,7 @@ class ObjectCreateView(APIView):
             Key=request.GET.get('key'), Body='', ACL='public-read')
         output = 'Object ' + \
             request.GET.get('bname') + '/' + \
-            request.GET.get('fname') + ' has been created'
+            request.GET.get('key') + ' has been created'
         return Response(output)
 
 
