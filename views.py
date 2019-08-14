@@ -36,8 +36,7 @@ class ObjectCreateView(APIView):
 
 class PresignedCreateView(APIView):
     def post(self, request):
-        session = boto3.Session(profile_name='default')
-        s3 = session.client('s3')
+        s3 = boto3.client('s3')
         response = s3.generate_presigned_post(request.GET.get('bname'),
                                               request.GET.get('key'), ExpiresIn=3600)
         return Response(response)
