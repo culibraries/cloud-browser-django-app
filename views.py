@@ -27,7 +27,7 @@ class ObjectCreateView(APIView):
     def get(self, request):
         s3 = boto3.resource('s3')
         s3.Bucket(request.GET.get('bname')).put_object(
-            Key=filename, Body='', ACL='public-read')
+            Key=request.GET.get('key'), Body='', ACL='public-read')
         output = 'Object ' + \
             request.GET.get('bname') + '/' + \
             request.GET.get('fname') + ' has been created'
