@@ -39,7 +39,7 @@ class PresignedCreateView(APIView):
         s3 = boto3.client('s3')
         response = s3.generate_presigned_post(request.GET.get('bname'),
                                               request.GET.get('key'))
-        return response
+        return Response(response)
 
 
 class ObjectUploadView(APIView):
