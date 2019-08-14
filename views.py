@@ -43,6 +43,15 @@ class ObjectUploadView(APIView):
         return Response(output)
 
 
+class ObjectDownloadView(APIView):
+    def post(self, request):
+        s3 = boto3.client('s3')
+        s3.download_file(request.GET.get('bname'), request.GET.get(
+            'key'), request.GET.get('fname'))
+        output = 'Object has been downloaded succesfully'
+        return Response(output)
+
+
 class ObjectDeleteView(APIView):
     def get(self, request):
         s3 = boto3.client('s3')
