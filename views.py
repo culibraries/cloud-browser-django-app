@@ -35,7 +35,7 @@ class ObjectCreateView(APIView):
 
 
 class ObjectUploadView(APIView):
-    def get(self, request):
+    def post(self, request):
         s3 = boto3.client('s3')
         s3.upload_file(request.GET.get('fname'), request.GET.get(
             'bname'), request.GET.get('key'))
