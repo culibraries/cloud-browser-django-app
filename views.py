@@ -11,16 +11,17 @@ class BucketListView(APIView):
         response = s3.list_buckets()
         output = []
         for bucket in response['Buckets']:
-            output.append({'_id': str(uuid.uuid4()), 'name': bucket['Name']})
+            output.append({'_id': str(
+                uuid.uuid4()), 'name': bucket['Name'], 'creation_date': bucket['CreationDate']})
         return Response(output)
 
 
-class BucketCreateView(APIView):
-    def get(self, request):
-        s3 = boto3.client('s3')
-        s3.create_bucket(Bucket=request.GET.get('bname'))
-        output = 'Bucket ' + request.GET.get('bname') + ' has been created'
-        return Response(output)
+# class BucketCreateView(APIView):
+#     def get(self, request):
+#         s3 = boto3.client('s3')
+#         s3.create_bucket(Bucket=request.GET.get('bname'))
+#         output = 'Bucket ' + request.GET.get('bname') + ' has been created'
+#         return Response(output)
 
 
 class ObjectCreateView(APIView):
@@ -85,15 +86,15 @@ class ObjectDeleteView(APIView):
         return Response(output)
 
 
-class BucketDeleteView(APIView):
-    def get(self, request):
-        s3 = boto3.client('s3')
-        s3.delete_bucket(
-            Bucket=request.GET.get('bname')
-        )
-        output = 'Bucket ' + \
-            request.GET.get('bname') + '/' + ' has been delete'
-        return Response(output)
+# class BucketDeleteView(APIView):
+#     def get(self, request):
+#         s3 = boto3.client('s3')
+#         s3.delete_bucket(
+#             Bucket=request.GET.get('bname')
+#         )
+#         output = 'Bucket ' + \
+#             request.GET.get('bname') + '/' + ' has been delete'
+#         return Response(output)
 
 
 class ObjectListView(APIView):
