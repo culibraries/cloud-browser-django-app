@@ -84,5 +84,6 @@ class ObjectListView(APIView):
         getBucket = s3.Bucket(request.GET.get('bname'))
         output = []
         for getBucket in getBucket.objects.all():
-            output.append({'name': getBucket.key})
+            output.append(
+                {'name': getBucket.key, 'last_modified': getBucket.last_modified, 'size': getBucket.size})
         return Response(output)
