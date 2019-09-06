@@ -16,14 +16,6 @@ class BucketListView(APIView):
         return Response(output)
 
 
-# class BucketCreateView(APIView):
-#     def get(self, request):
-#         s3 = boto3.client('s3')
-#         s3.create_bucket(Bucket=request.GET.get('bname'))
-#         output = 'Bucket ' + request.GET.get('bname') + ' has been created'
-#         return Response(output)
-
-
 class ObjectCreateView(APIView):
     def get(self, request):
         s3 = boto3.resource('s3')
@@ -84,17 +76,6 @@ class ObjectDeleteView(APIView):
             request.GET.get('bname') + '/' + \
             request.GET.get('key') + ' has been delete'
         return Response(output)
-
-
-# class BucketDeleteView(APIView):
-#     def get(self, request):
-#         s3 = boto3.client('s3')
-#         s3.delete_bucket(
-#             Bucket=request.GET.get('bname')
-#         )
-#         output = 'Bucket ' + \
-#             request.GET.get('bname') + '/' + ' has been delete'
-#         return Response(output)
 
 
 class ObjectListView(APIView):
