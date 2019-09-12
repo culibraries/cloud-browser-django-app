@@ -98,19 +98,28 @@ class ObjectFolderListView(APIView):
         items = []
         if (key == '' or key is None):
             resp = s3.list_objects_v2(Bucket=bName, Prefix='', Delimiter="/")
+            if (resp.get('CommonPrefixes') is not None):
+                for item in resp['CommonPrefixes']:
+                    folders.append(
+                        {'name': item['Prefix'], 'last_modified': '', 'size': '-'})
+            if (resp.get('Contents') is not None):
+                for item in resp['Contents']:
+                    items.append(
+                        {'name': item['Key'], 'last_modified': item['LastModified'], 'size': item['Size']})
         else:
-            resp = s3.list_objects_v2(Bucket=bName, Prefix=key, Delimiter="/")
-        if (resp.get('CommonPrefixes') is not None):
-            folderFinal = []
-            for item in resp['CommonPrefixes']:
-                folderFinal = item['Prefix'].split('/')
-                folders.append(
-                    {'name': folderFinal[1], 'last_modified': '', 'size': '-'})
+            resp = s3.list_objects_v2(
+                Bucket=bName, Prefix=key, Delimiter="/")
+            if (resp.get('CommonPrefixes') is not None):
+                folderFinal = []
+                for item in resp['CommonPrefixes']:
+                    folderFinal = item['Prefix'].split('/')
+                    folders.append(
+                        {'name': folderFinal[1], 'last_modified': '', 'size': '-'})
+            if (resp.get('Contents') is not None):
+                itemFinal = []
+                for item in resp['Contents']:
+                    itemFinal = item['Key'].split('/')
+                    items.append(
+                        {'name': itemFinal[1], 'last_modified': item['LastModified'], 'size': item['Size']})
 
-        if (resp.get('Contents') is not None):
-            itemFinal = []
-            for item in resp['Contents']:
-                itemFinal = item['Key'].split('/')
-                items.append(
-                    {'name': itemFinal[1], 'last_modified': item['LastModified'], 'size': item['Size']})
         return Response(folders+items)
