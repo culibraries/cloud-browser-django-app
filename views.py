@@ -99,7 +99,7 @@ class ObjectFolderListView(APIView):
         if (key == '' or key is None):
             resp = s3.list_objects_v2(Bucket=bName, Prefix='', Delimiter="/")
         else:
-            resp = s3client.list_objects(
+            resp = s3.list_objects_v2(
                 Bucket=bName, Prefix=key, Delimiter="/")
         if (resp.get('CommonPrefixes') is not None):
             for item in resp['CommonPrefixes']:
