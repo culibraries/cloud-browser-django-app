@@ -87,3 +87,20 @@ class ObjectListView(APIView):
             output.append(
                 {'name': getBucket.key, 'last_modified': getBucket.last_modified, 'size': getBucket.size})
         return Response(output)
+
+
+class ObjectFolderListView(APIView):
+    def get(self, request):
+        s3 = boto3.client('s3')
+        bName = request.GET.get('bname')
+        key = request.GET.get('key')
+        folders = []
+        items = []
+        if (key == '' or key is None):
+            resp = s3.list_objects_v2(Bucket=bName, Prefix='', Delimiter="/")
+        else:
+            resp = s3client.list_objects(
+                Bucket=bName, Prefix=key, Delimiter="/")
+        folders = [x['Prefix'] for x in resp['CommonPrefixes']]
+        items = [x['Key'] for x in resp['Contents']]
+        return Response(folders+items)

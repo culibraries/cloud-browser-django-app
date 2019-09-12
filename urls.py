@@ -1,5 +1,5 @@
 from django.urls import path
-from s3.views import BucketListView, ObjectListView, ObjectCreateView, ObjectDeleteView, ObjectUploadView, ObjectDownloadView, PresignedCreateView, PresignedCreateURLView
+from s3.views import BucketListView, ObjectListView, ObjectCreateView, ObjectDeleteView, ObjectUploadView, ObjectDownloadView, PresignedCreateView, PresignedCreateURLView, ObjectFolderListView
 
 urlpatterns = [
     path('buckets', BucketListView.as_view(), name='buckets-list'),
@@ -9,6 +9,7 @@ urlpatterns = [
     path('object/upload', ObjectUploadView.as_view(), name='object-upload'),
     path('object/download', ObjectDownloadView.as_view(), name='object-download'),
     path('presigned/create', PresignedCreateView.as_view()),
-    path('presigned-url/create', PresignedCreateURLView.as_view())
-
+    path('presigned-url/create', PresignedCreateURLView.as_view()),
+    path('objects-folder', ObjectFolderListView.as_view(),
+         name='objects-folder-list')
 ]
