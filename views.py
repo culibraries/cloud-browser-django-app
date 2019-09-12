@@ -101,11 +101,11 @@ class ObjectFolderListView(APIView):
         else:
             resp = s3client.list_objects(
                 Bucket=bName, Prefix=key, Delimiter="/")
-        if (resp['CommonPrefixes']):
+        if (resp.get('CommonPrefixes') is not None):
             for item in resp['CommonPrefixes']:
                 folders.append(
                     {'name': item['Prefix'], 'last_modified': '', 'size': '-'})
-        if (resp['Contents']):
+        if (resp.get('Contents') is not None):
             for item in resp['Contents']:
                 items.append(
                     {'name': item['Key'], 'last_modified': item['LastModified'], 'size': item['Size']})
