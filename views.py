@@ -99,14 +99,18 @@ class ObjectFolderListView(APIView):
         if (key == '' or key is None):
             resp = s3.list_objects_v2(Bucket=bName, Prefix='', Delimiter="/")
         else:
-            resp = s3.list_objects_v2(
-                Bucket=bName, Prefix=key, Delimiter="/")
+            resp = s3.list_objects_v2(Bucket=bName, Prefix=key, Delimiter="/")
         if (resp.get('CommonPrefixes') is not None):
+            folderFinal = []
             for item in resp['CommonPrefixes']:
+                folderFinal = item['Prefix'].split('/')
                 folders.append(
-                    {'name': item['Prefix'], 'last_modified': '', 'size': '-'})
+                    {'name': folderFinal[1], 'last_modified': '', 'size': '-'})
+
         if (resp.get('Contents') is not None):
+            itemFinal = []
             for item in resp['Contents']:
+                itemFinal = item['Key'].split('/')
                 items.append(
-                    {'name': item['Key'], 'last_modified': item['LastModified'], 'size': item['Size']})
+                    {'name': itemFinal[1], 'last_modified': item['LastModified'], 'size': item['Size']})
         return Response(folders+items)
