@@ -114,12 +114,12 @@ class ObjectFolderListView(APIView):
                 for item in resp['CommonPrefixes']:
                     folderFinal = item['Prefix'].split('/')
                     folders.append(
-                        {'name': folderFinal[1], 'last_modified': '', 'size': '-'})
+                        {'name': folderFinal[1] + '/', 'last_modified': '', 'size': '-'})
             if (resp.get('Contents') is not None):
                 itemFinal = []
                 for item in resp['Contents']:
                     itemFinal = item['Key'].split('/')
                     items.append(
-                        {'name': itemFinal[1], 'last_modified': item['LastModified'], 'size': item['Size']})
+                        {'name': itemFinal[1] + '/', 'last_modified': item['LastModified'], 'size': item['Size']})
 
         return Response(folders+items)
