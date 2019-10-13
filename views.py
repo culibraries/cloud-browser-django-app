@@ -15,17 +15,13 @@ class BucketListView(APIView):
         output = []
         groups_set = request.user.groups.filter(name__contains='cubl')
         for g in groups_set:
-            print(g.name)
             arrGroupName = g.name.split('-')[:-1]
             groupName = '-'.join(arrGroupName)
             print(groupName)
-            if groupName in response['Buckets']['name']:
-                print(response['Buckets']['name'])
-                # output.append({'_id': str(
-                # uuid.uuid4()), 'name': bucket['Name'], 'creation_date': bucket['CreationDate']})
-        # for bucket in response['Buckets']:
-        #     output.append({'_id': str(
-        #         uuid.uuid4()), 'name': bucket['Name'], 'creation_date': bucket['CreationDate']})
+            for bucket in response['Buckets']:
+                if groupName == bucket['Name']:
+                    output.append({'_id': str(
+                        uuid.uuid4()), 'name': bucket['Name'], 'permission': g.name.split('-')[-1], 'creation_date': bucket['CreationDate']})
         return Response(output)
 
 
