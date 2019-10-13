@@ -6,10 +6,14 @@ import uuid
 
 
 class BucketListView(APIView):
+    permission_classes = (IsAuthenticated)
+
     def get(self, request):
         s3 = boto3.client('s3')
         response = s3.list_buckets()
         output = []
+        groups = request.user.groups.filter(name__contains='cubl')
+        print(groups)
         for bucket in response['Buckets']:
             output.append({'_id': str(
                 uuid.uuid4()), 'name': bucket['Name'], 'creation_date': bucket['CreationDate']})
