@@ -13,6 +13,7 @@ class BucketListView(APIView):
         s3 = boto3.client('s3')
         response = s3.list_buckets()
         output = []
+        print(request.user.groups.all())
         groups = request.user.groups.filter(name__contains='cubl')
         print(groups)
         for group in groups:
