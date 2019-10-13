@@ -16,7 +16,8 @@ class BucketListView(APIView):
         groups_set = request.user.groups.filter(name__contains='cubl')
         for g in groups_set:
             print(g)
-            arrGroupName = g.split('-')[:-1]
+            arrGroupName = g.split('-')
+            del arrGroupName[-1]
             groupName = '-'.join(arrGroupName)
             print(groupName)
             if groupName in response['Buckets']['name']:
