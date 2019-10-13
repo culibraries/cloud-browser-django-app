@@ -7,7 +7,7 @@ import uuid
 
 
 class BucketListView(APIView):
-    permission_classes = (IsAuthenticated)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         s3 = boto3.client('s3')
