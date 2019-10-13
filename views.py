@@ -13,9 +13,10 @@ class BucketListView(APIView):
         s3 = boto3.client('s3')
         response = s3.list_buckets()
         output = []
-        groups = request.user.groups.filter(name__contains='cubl')
-        for group in groups:
-            arrGroupName = group.split('-')[:-1]
+        groups_set = request.user.groups.filter(name__contains='cubl')
+        for g in groups_set:
+            print(g)
+            arrGroupName = g.split('-')[:-1]
             groupName = '-'.join(arrGroupName)
             print(groupName)
             if groupName in response['Buckets']['name']:
