@@ -14,7 +14,7 @@ class BucketListView(APIView):
         response = s3.list_buckets()
         output = []
         groups_set = request.user.groups.filter(name__contains='cubl')
-        if groups_set.exist():
+        if groups_set.exists():
             for g in groups_set:
                 arrGroupName = g.name.split('-')[:-1]
                 groupName = '-'.join(arrGroupName)
