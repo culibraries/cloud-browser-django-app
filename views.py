@@ -14,7 +14,7 @@ class BucketListView(APIView):
         response = s3.list_buckets()
         output = []
         groups_set = request.user.groups.filter(name__contains='cubl')
-        if not groups_set:
+        if groups_set.exist():
             for g in groups_set:
                 arrGroupName = g.name.split('-')[:-1]
                 groupName = '-'.join(arrGroupName)
@@ -23,6 +23,8 @@ class BucketListView(APIView):
                     if groupName == bucket['Name']:
                         output.append({'_id': str(
                             uuid.uuid4()), 'name': bucket['Name'], 'permission': g.name.split('-')[-1], 'creation_date': bucket['CreationDate']})
+        else:
+            output = []
         return Response(output)
 
 
