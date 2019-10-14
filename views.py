@@ -14,29 +14,31 @@ class BucketListView(APIView):
         response = s3.list_buckets()
         output = []
         groups_set = request.user.groups.filter(name__contains='cubl')
-        for g in groups_set:
-            arrGroupName = g.name.split('-')[:-1]
-            groupName = '-'.join(arrGroupName)
-            print(groupName)
-            for bucket in response['Buckets']:
-                if groupName == bucket['Name']:
-                    output.append({'_id': str(
-                        uuid.uuid4()), 'name': bucket['Name'], 'permission': g.name.split('-')[-1], 'creation_date': bucket['CreationDate']})
+        if not groups_set:
+            for g in groups_set:
+                arrGroupName = g.name.split('-')[:-1]
+                groupName = '-'.join(arrGroupName)
+                print(groupName)
+                for bucket in response['Buckets']:
+                    if groupName == bucket['Name']:
+                        output.append({'_id': str(
+                            uuid.uuid4()), 'name': bucket['Name'], 'permission': g.name.split('-')[-1], 'creation_date': bucket['CreationDate']})
         return Response(output)
 
 
 class ObjectCreateView(APIView):
-    def get(self, request):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
         s3 = boto3.resource('s3')
-        s3.Bucket(request.GET.get('bname')).put_object(
+        createObject = s3.Bucket(request.GET.get('bname')).put_object(
             Key=request.GET.get('key'), Body='', ACL='public-read')
-        output = 'Object ' + \
-            request.GET.get('bname') + '/' + \
-            request.GET.get('key') + ' has been created'
-        return Response(output)
+        return Response(createObject)
 
 
 class PresignedCreateView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request):
         s3 = boto3.client('s3')
         response = s3.generate_presigned_post(request.GET.get('bname'),
@@ -45,6 +47,8 @@ class PresignedCreateView(APIView):
 
 
 class PresignedCreateURLView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request):
         s3 = boto3.client('s3')
         url = s3.generate_presigned_url(
@@ -59,32 +63,33 @@ class PresignedCreateURLView(APIView):
 
 
 class ObjectUploadView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request):
         s3 = boto3.client('s3')
-        s3.upload_file(request.GET.get('fname'), request.GET.get(
+        uploadObject = s3.upload_file(request.GET.get('fname'), request.GET.get(
             'bname'), request.GET.get('key'))
-        output = 'Object has been uploaded succesfully'
-        return Response(output)
+        return Response(uploadObject)
 
 
 class ObjectDownloadView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request):
         s3 = boto3.client('s3')
-        s3.download_file(request.GET.get('bname'), request.GET.get(
+        downloadObject = s3.download_file(request.GET.get('bname'), request.GET.get(
             'key'), request.GET.get('fname'))
-        output = 'Object has been downloaded succesfully'
-        return Response(output)
+        return Response(downloadObject)
 
 
 class ObjectDeleteView(APIView):
-    def get(self, request):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
         s3 = boto3.client('s3')
-        s3.delete_object(Bucket=request.GET.get('bname'),
-                         Key=request.GET.get('key'))
-        output = 'Object ' + \
-            request.GET.get('bname') + '/' + \
-            request.GET.get('key') + ' has been delete'
-        return Response(output)
+        deleteObject = s3.delete_object(Bucket=request.GET.get('bname'),
+                                        Key=request.GET.get('key'))
+        return Response(deleteObject)
 
 
 class ObjectListView(APIView):
