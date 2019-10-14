@@ -101,7 +101,7 @@ class ObjectListView(APIView):
         output = []
         for getBucket in getBucket.objects.all():
             output.append(
-                {'name': getBucket.key, 'last_modified': getBucket.last_modified, 'size': getBucket.size})
+                {'name': request.GET.get('bname') + '/' + getBucket.key, 'last_modified': getBucket.last_modified, 'size': getBucket.size})
         return Response(output)
 
 
