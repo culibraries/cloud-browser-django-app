@@ -122,7 +122,7 @@ class ObjectFolderListView(APIView):
         if (resp.get('CommonPrefixes') is not None):
             for item in resp['CommonPrefixes']:
                 name = item['Prefix'].split('/')
-                for i in range(numberOfSlash-1):
+                for i in range(numberOfSlash):
                     del name[i]
                 out = '/'.join(name)
                 folders.append(
