@@ -119,32 +119,25 @@ class ObjectFolderListView(APIView):
             resp = s3.list_objects_v2(
                 Bucket=bName, Prefix=key, Delimiter="/")
 
-        if numberOfSlash <= 1:
             if (resp.get('CommonPrefixes') is not None):
                 for item in resp['CommonPrefixes']:
                     name = item['Prefix'].split('/')
                     for i in range(numberOfSlash):
-                        del name[i]
+                        del name[0]
                     out = '/'.join(name)
                     folders.append(
                         {'name': out, 'last_modified': '', 'size': '-'})
             if (resp.get('Contents') is not None):
                 for item in resp['Contents']:
-                    items.append(
-                        {'name': item['Key'], 'last_modified': item['LastModified'], 'size': item['Size']})
-        else:
-            if (resp.get('Contents') is not None):
-                for item in resp['Contents']:
                     name = item['Key'].split('/')
-                    print(name)
                     for i in range(numberOfSlash):
                         del name[0]
                     out = '/'.join(name)
-                    print(name)
                     if out == '':
                         folders = []
                         items = []
                     else:
                         items.append(
                             {'name': out, 'last_modified': item['LastModified'], 'size': item['Size']})
+
         return Response(folders+items)
