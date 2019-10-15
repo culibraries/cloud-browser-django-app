@@ -121,11 +121,11 @@ class ObjectFolderListView(APIView):
             if (resp.get('CommonPrefixes') is not None):
                 for item in resp['CommonPrefixes']:
                     folders.append(
-                        {'name': item['Prefix'], 'last_modified': '', 'size': '-', 'full_path': bName + '/' + item['Prefix']})
+                        {'name': item['Prefix'], 'last_modified': '', 'size': '-', 'full_path': bName + '/' + item['Prefix'], 'path': item['Prefix']})
             if (resp.get('Contents') is not None):
                 for item in resp['Contents']:
                     items.append(
-                        {'name': item['Key'], 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '/' + item['Key']})
+                        {'name': item['Key'], 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '/' + item['Key'], 'path': item['Key']})
         else:
             numberOfSlash = len(key.split('/')) - 1
             resp = s3.list_objects_v2(
@@ -137,7 +137,7 @@ class ObjectFolderListView(APIView):
                         del name[0]
                     out = '/'.join(name)
                     folders.append(
-                        {'name': out, 'last_modified': '', 'size': '-', 'full_path': bName + '/' + item['Prefix']})
+                        {'name': out, 'last_modified': '', 'size': '-', 'full_path': bName + '/' + item['Prefix'], 'path': item['Prefix']})
             if (resp.get('Contents') is not None):
                 for item in resp['Contents']:
                     name = item['Key'].split('/')
@@ -150,6 +150,6 @@ class ObjectFolderListView(APIView):
                             items = []
                     else:
                         items.append(
-                            {'name': out, 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '/' + item['Key']})
+                            {'name': out, 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '/' + item['Key'], 'path': item['Key']})
 
         return Response(folders+items)
