@@ -134,8 +134,9 @@ class ObjectFolderListView(APIView):
                         del name[0]
                     out = '/'.join(name)
                     if out == '':
-                        folders = []
-                        items = []
+                        if resp.get('CommonPrefixes') is None:
+                            folders = []
+                            items = []
                     else:
                         items.append(
                             {'name': out, 'last_modified': item['LastModified'], 'size': item['Size']})
