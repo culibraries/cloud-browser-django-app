@@ -115,7 +115,12 @@ class ObjectFolderListView(APIView):
         key = request.GET.get('key')
         folders = []
         items = []
-        groups_set = request.user.groups.filter(name__iexact=bName)
+        groups_set = request.user.groups.filter(name__contains=bName)
+        print(groups_set)
+        if groups_set.exists():
+            permission = groups_set.name.split('-')[-1]
+        else:
+            permission = ''
         print(groups_set)
         if (key == '' or key is None):
             resp = s3.list_objects_v2(Bucket=bName, Prefix='', Delimiter="/")
@@ -123,11 +128,11 @@ class ObjectFolderListView(APIView):
             if (resp.get('CommonPrefixes') is not None):
                 for item in resp['CommonPrefixes']:
                     folders.append(
-                        {'name': item['Prefix'], 'permission': groups_set.name.split('-')[-1],  'last_modified': '', 'size': 0, 'full_path': bName + '/' + item['Prefix'], 'path': item['Prefix']})
+                        {'name': item['Prefix'], 'permission': permission,  'last_modified': '', 'size': 0, 'full_path': bName + '/' + item['Prefix'], 'path': item['Prefix']})
             if (resp.get('Contents') is not None):
                 for item in resp['Contents']:
                     items.append(
-                        {'name': item['Key'], 'permission': groups_set.name.split('-')[-1], 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '/' + item['Key'], 'path': item['Key']})
+                        {'name': item['Key'], 'permission': permission, 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '/' + item['Key'], 'path': item['Key']})
         else:
             numberOfSlash = len(key.split('/')) - 1
             resp = s3.list_objects_v2(
@@ -139,7 +144,7 @@ class ObjectFolderListView(APIView):
                         del name[0]
                     out = '/'.join(name)
                     folders.append(
-                        {'name': out, 'permission': groups_set.name.split('-')[-1], 'last_modified': '', 'size': 0, 'full_path': bName + '/' + item['Prefix'], 'path': item['Prefix']})
+                        {'name': out, 'permission': permission, 'last_modified': '', 'size': 0, 'full_path': bName + '/' + item['Prefix'], 'path': item['Prefix']})
             if (resp.get('Contents') is not None):
                 for item in resp['Contents']:
                     name = item['Key'].split('/')
@@ -152,6 +157,6 @@ class ObjectFolderListView(APIView):
                             items = []
                     else:
                         items.append(
-                            {'name': out, 'permission': groups_set.name.split('-')[-1], 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '/' + item['Key'], 'path': item['Key']})
+                            {'name': out, 'permission': permission, 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '/' + item['Key'], 'path': item['Key']})
 
         return Response(folders+items)
