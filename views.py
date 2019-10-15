@@ -114,31 +114,38 @@ class ObjectFolderListView(APIView):
         items = []
         if (key == '' or key is None):
             resp = s3.list_objects_v2(Bucket=bName, Prefix='', Delimiter="/")
+            if (resp.get('CommonPrefixes') is not None):
+                for item in resp['CommonPrefixes']:
+                    folders.append(
+                        {'name': item['Prefix'], 'last_modified': '', 'size': '-'})
+            if (resp.get('Contents') is not None):
+                for item in resp['Contents']:
+                    items.append(
+                        {'name': item['Key'], 'last_modified': item['LastModified'], 'size': item['Size']})
         else:
             numberOfSlash = len(key.split('/')) - 1
             resp = s3.list_objects_v2(
                 Bucket=bName, Prefix=key, Delimiter="/")
-
-        if (resp.get('CommonPrefixes') is not None):
-            for item in resp['CommonPrefixes']:
-                name = item['Prefix'].split('/')
-                for i in range(numberOfSlash):
-                    del name[0]
-                out = '/'.join(name)
-                folders.append(
-                    {'name': out, 'last_modified': '', 'size': '-'})
-        if (resp.get('Contents') is not None):
-            for item in resp['Contents']:
-                name = item['Key'].split('/')
-                for i in range(numberOfSlash):
-                    del name[0]
-                out = '/'.join(name)
-                if out == '':
-                    if resp.get('CommonPrefixes') is None:
-                        folders = []
-                        items = []
-                else:
-                    items.append(
-                        {'name': out, 'last_modified': item['LastModified'], 'size': item['Size']})
+            if (resp.get('CommonPrefixes') is not None):
+                for item in resp['CommonPrefixes']:
+                    name = item['Prefix'].split('/')
+                    for i in range(numberOfSlash):
+                        del name[0]
+                    out = '/'.join(name)
+                    folders.append(
+                        {'name': out, 'last_modified': '', 'size': '-'})
+            if (resp.get('Contents') is not None):
+                for item in resp['Contents']:
+                    name = item['Key'].split('/')
+                    for i in range(numberOfSlash):
+                        del name[0]
+                    out = '/'.join(name)
+                    if out == '':
+                        if resp.get('CommonPrefixes') is None:
+                            folders = []
+                            items = []
+                    else:
+                        items.append(
+                            {'name': out, 'last_modified': item['LastModified'], 'size': item['Size']})
 
         return Response(folders+items)
