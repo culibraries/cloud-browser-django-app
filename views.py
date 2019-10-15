@@ -31,9 +31,9 @@ class ObjectCreateView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        s3 = boto3.resource('s3')
-        createObject = s3.Bucket(request.data.get('bname')).put_object(
-            Key=request.data.get('key'), Body='', ACL='public-read')
+        s3 = boto3.client('s3')
+        deleteObject = s3.put_object(Bucket=request.data.get('bname'),
+                                     Key=request.data.get('key'), Body='', ACL='public-read')
         return Response(createObject)
 
 
