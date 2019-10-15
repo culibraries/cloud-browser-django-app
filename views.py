@@ -95,6 +95,8 @@ class ObjectDeleteView(APIView):
 
 
 class ObjectListView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
         s3 = boto3.resource('s3')
         getBucket = s3.Bucket(request.GET.get('bname'))
@@ -106,6 +108,8 @@ class ObjectListView(APIView):
 
 
 class ObjectFolderListView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
         s3 = boto3.client('s3')
         bName = request.GET.get('bname')
@@ -117,11 +121,11 @@ class ObjectFolderListView(APIView):
             if (resp.get('CommonPrefixes') is not None):
                 for item in resp['CommonPrefixes']:
                     folders.append(
-                        {'name': item['Prefix'], 'last_modified': '', 'size': '-'})
+                        {'name': item['Prefix'], 'last_modified': '', 'size': '-', 'full_path': bName + '\\' + item['Prefix']})
             if (resp.get('Contents') is not None):
                 for item in resp['Contents']:
                     items.append(
-                        {'name': item['Key'], 'last_modified': item['LastModified'], 'size': item['Size']})
+                        {'name': item['Key'], 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '\\' + item['Key']})
         else:
             numberOfSlash = len(key.split('/')) - 1
             resp = s3.list_objects_v2(
@@ -133,7 +137,7 @@ class ObjectFolderListView(APIView):
                         del name[0]
                     out = '/'.join(name)
                     folders.append(
-                        {'name': out, 'last_modified': '', 'size': '-'})
+                        {'name': out, 'last_modified': '', 'size': '-', 'full_path': bName + '\\' + item['Prefix']})
             if (resp.get('Contents') is not None):
                 for item in resp['Contents']:
                     name = item['Key'].split('/')
@@ -146,6 +150,6 @@ class ObjectFolderListView(APIView):
                             items = []
                     else:
                         items.append(
-                            {'name': out, 'last_modified': item['LastModified'], 'size': item['Size']})
+                            {'name': out, 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '\\' + item['Key']})
 
         return Response(folders+items)
