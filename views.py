@@ -122,7 +122,8 @@ class ObjectFolderListView(APIView):
         if (resp.get('CommonPrefixes') is not None):
             for item in resp['CommonPrefixes']:
                 name = item['Prefix'].split('/')
-                out = '/'.join(removeItemBySlash(numberOfSlash, name))
+                newArray = removeItemBySlash(numberOfSlash, name)
+                out = '/'.join(newArray)
                 folders.append(
                     {'name': out, 'last_modified': '', 'size': '-'})
 
@@ -133,6 +134,6 @@ class ObjectFolderListView(APIView):
         return Response(folders+items)
 
     def removeItemBySlash(numberOfSlash, array):
-        for i in rangh(numberOfSlash):
+        for i in range(numberOfSlash):
             del array[i]
         return array
