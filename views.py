@@ -32,7 +32,7 @@ class ObjectCreateView(APIView):
 
     def post(self, request):
         s3 = boto3.resource('s3')
-        createObject = s3.Bucket(request.GET.get('bname')).put_object(
+        createObject = s3.Bucket(request.data.get('bname')).put_object(
             Key=request.GET.get('key'), Body='', ACL='public-read')
         return Response(createObject)
 
@@ -42,8 +42,8 @@ class PresignedCreateView(APIView):
 
     def post(self, request):
         s3 = boto3.client('s3')
-        response = s3.generate_presigned_post(request.GET.get('bname'),
-                                              request.GET.get('key'))
+        response = s3.generate_presigned_post(request.data.get('bname'),
+                                              request.data.get('key'))
         return Response(response)
 
 
@@ -68,8 +68,8 @@ class ObjectUploadView(APIView):
 
     def post(self, request):
         s3 = boto3.client('s3')
-        uploadObject = s3.upload_file(request.GET.get('fname'), request.GET.get(
-            'bname'), request.GET.get('key'))
+        uploadObject = s3.upload_file(request.data.get('fname'), request.data.get(
+            'bname'), request.data.get('key'))
         return Response(uploadObject)
 
 
@@ -78,8 +78,8 @@ class ObjectDownloadView(APIView):
 
     def post(self, request):
         s3 = boto3.client('s3')
-        downloadObject = s3.download_file(request.GET.get('bname'), request.GET.get(
-            'key'), request.GET.get('fname'))
+        downloadObject = s3.download_file(request.data.get('bname'), request.data.get(
+            'key'), request.data.get('fname'))
         return Response(downloadObject)
 
 
@@ -88,8 +88,8 @@ class ObjectDeleteView(APIView):
 
     def post(self, request):
         s3 = boto3.client('s3')
-        deleteObject = s3.delete_object(Bucket=request.GET.get('bname'),
-                                        Key=request.GET.get('key'))
+        deleteObject = s3.delete_object(Bucket=request.data.get('bname'),
+                                        Key=request.data.get('key'))
         return Response(deleteObject)
 
 
