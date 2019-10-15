@@ -121,7 +121,7 @@ class ObjectFolderListView(APIView):
             if (resp.get('CommonPrefixes') is not None):
                 for item in resp['CommonPrefixes']:
                     folders.append(
-                        {'name': item['Prefix'], 'last_modified': '', 'size': '-', 'full_path': bName + '/' + item['Prefix'], 'path': item['Prefix']})
+                        {'name': item['Prefix'], 'last_modified': '', 'size': 0, 'full_path': bName + '/' + item['Prefix'], 'path': item['Prefix']})
             if (resp.get('Contents') is not None):
                 for item in resp['Contents']:
                     items.append(
@@ -137,7 +137,7 @@ class ObjectFolderListView(APIView):
                         del name[0]
                     out = '/'.join(name)
                     folders.append(
-                        {'name': out, 'last_modified': '', 'size': '-', 'full_path': bName + '/' + item['Prefix'], 'path': item['Prefix']})
+                        {'name': out, 'last_modified': '', 'size': 0, 'full_path': bName + '/' + item['Prefix'], 'path': item['Prefix']})
             if (resp.get('Contents') is not None):
                 for item in resp['Contents']:
                     name = item['Key'].split('/')
