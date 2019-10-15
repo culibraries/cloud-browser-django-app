@@ -116,9 +116,9 @@ class ObjectFolderListView(APIView):
         folders = []
         items = []
         groups_set = request.user.groups.filter(name__contains=bName)
-        print(groups_set)
         if groups_set.exists():
-            permission = groups_set.name.split('-')[-1]
+            for g in groups_set:
+                permission = g.name.split('-')[-1]
         else:
             permission = ''
         print(groups_set)
