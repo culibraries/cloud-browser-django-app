@@ -32,7 +32,7 @@ class ObjectCreateView(APIView):
 
     def post(self, request):
         s3 = boto3.client('s3')
-        deleteObject = s3.put_object(Bucket=request.data.get('bname'),
+        createObject = s3.put_object(Bucket=request.data.get('bname'),
                                      Key=request.data.get('key'), Body='', ACL='public-read')
         return Response(createObject)
 
