@@ -55,10 +55,10 @@ class PresignedCreateURLView(APIView):
         url = s3.generate_presigned_url(
             ClientMethod='get_object',
             Params={
-                'Bucket': request.GET.get('bname'),
-                'Key': request.GET.get('key')
+                'Bucket': request.data.get('bname'),
+                'Key': request.data.get('key')
             },
-            ExpiresIn=request.GET.get('expires')
+            ExpiresIn=request.data.get('expires')
         )
         return Response(url)
 
