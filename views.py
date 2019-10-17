@@ -10,7 +10,7 @@ class BucketListView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        s3 = boto3.client('s3', region_name='us-west-2')
+        s3 = boto3.client('s3')
         response = s3.list_buckets()
         output = []
         groups_set = request.user.groups.filter(name__contains='cubl')
@@ -20,8 +20,9 @@ class BucketListView(APIView):
                 groupName = '-'.join(arrGroupName)
                 for bucket in response['Buckets']:
                     if groupName == bucket['Name']:
+                        region = s3.get_bucket_location(Bucket=bucket['Name'])
                         output.append({'_id': str(
-                            uuid.uuid4()), 'name': bucket['Name'], 'permission': g.name.split('-')[-1], 'creation_date': bucket['CreationDate']})
+                            uuid.uuid4()), 'name': bucket['Name'], 'permission': g.name.split('-')[-1], 'region': region, 'creation_date': bucket['CreationDate']})
         else:
             output = []
         return Response(output)
@@ -31,7 +32,7 @@ class ObjectCreateView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        s3 = boto3.client('s3', region_name='us-west-2')
+        s3 = boto3.client('s3')
         createObject = s3.put_object(Bucket=request.data.get('bname'),
                                      Key=request.data.get('key'), Body='', ACL='public-read')
         return Response(createObject)
@@ -41,7 +42,7 @@ class PresignedCreateView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        s3 = boto3.client('s3', region_name='us-west-2')
+        s3 = boto3.client('s3')
         response = s3.generate_presigned_post(request.data.get('bname'),
                                               request.data.get('key'))
         return Response(response)
@@ -67,7 +68,7 @@ class ObjectUploadView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        s3 = boto3.client('s3', region_name='us-west-2')
+        s3 = boto3.client('s3')
         uploadObject = s3.upload_file(request.data.get('fname'), request.data.get(
             'bname'), request.data.get('key'))
         return Response(uploadObject)
@@ -77,7 +78,7 @@ class ObjectDownloadView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        s3 = boto3.client('s3', region_name='us-west-2')
+        s3 = boto3.client('s3')
         downloadObject = s3.download_file(request.data.get('bname'), request.data.get(
             'key'), request.data.get('fname'))
         return Response(downloadObject)
@@ -87,7 +88,7 @@ class ObjectDeleteView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        s3 = boto3.client('s3', region_name='us-west-2')
+        s3 = boto3.client('s3')
         deleteObject = s3.delete_object(Bucket=request.data.get('bname'),
                                         Key=request.data.get('key'))
         return Response(deleteObject)
@@ -110,7 +111,7 @@ class ObjectFolderListView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        s3 = boto3.client('s3', region_name='us-west-2')
+        s3 = boto3.client('s3')
         bName = request.GET.get('bname')
         key = request.GET.get('key')
         folders = []
