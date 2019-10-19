@@ -1,5 +1,5 @@
 from django.urls import path
-from s3.views import BucketListView, ObjectListView, ObjectCreateView, ObjectDeleteView, ObjectUploadView, ObjectDownloadView, PresignedCreateView, PresignedCreateURLView, ObjectFolderListView
+from s3.views import BucketListView, ObjectListView, ObjectCreateView, ObjectDeleteView, ObjectUploadView, ObjectDownloadView, PresignedCreateView, PresignedCreateURLView
 
 urlpatterns = [
     path('buckets', BucketListView.as_view(), name='buckets-list'),
