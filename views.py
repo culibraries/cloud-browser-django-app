@@ -20,7 +20,10 @@ class BucketListView(APIView):
                 groupName = '-'.join(arrGroupName)
                 for bucket in response['Buckets']:
                     if groupName == bucket['Name']:
-                        region = s3.get_bucket_location(Bucket=bucket['Name'])
+                        region = s3.get_bucket_location(Bucket=bucket['Name'])[
+                            'LocationConstraint']
+                        if region == '':
+                            region = 'us-east-2'
                         output.append({'_id': str(
                             uuid.uuid4()), 'name': bucket['Name'], 'permission': g.name.split('-')[-1], 'region': region, 'creation_date': bucket['CreationDate']})
         else:
