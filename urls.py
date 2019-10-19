@@ -10,6 +10,6 @@ urlpatterns = [
     path('object/download', ObjectDownloadView.as_view(), name='object-download'),
     path('presigned/create', PresignedCreateView.as_view()),
     path('presigned-url/create', PresignedCreateURLView.as_view()),
-    path('objects-folder', ObjectFolderListView.as_view(),
-         name='objects-folder-list')
+    path('objects', ObjectListView.as_view(),
+         name='objects-list')
 ]

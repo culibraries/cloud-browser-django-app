@@ -103,7 +103,7 @@ class ObjectDeleteView(APIView):
         return Response(deleteObject)
 
 
-class ObjectFolderListView(APIView):
+class ObjectListView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
