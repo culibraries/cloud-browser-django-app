@@ -112,7 +112,7 @@ class ObjectListView(APIView):
         bName = request.GET.get('bname')
         key = request.GET.get('key')
         token = request.GET.get('token')
-        maxKeys = 1
+        maxKeys = 2000
         folders = []
         items = []
         output = {
