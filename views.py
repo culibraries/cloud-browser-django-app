@@ -23,7 +23,7 @@ class BucketListView(APIView):
                         region = s3.get_bucket_location(Bucket=bucket['Name'])[
                             'LocationConstraint']
                         if region is None:
-                            region = 'us-east-2'
+                            region = 'us-east-1'
                         output.append({'_id': str(
                             uuid.uuid4()), 'name': bucket['Name'], 'permission': g.name.split('-')[-1], 'region': region, 'creation_date': bucket['CreationDate']})
         else:
