@@ -133,11 +133,11 @@ class ObjectListView(APIView):
             else:
                 resp = s3.list_objects_v2(
                     Bucket=bName, Prefix='', Delimiter="/", MaxKeys=maxKeys)
-            if resp['ContinuationToken'] is not None:
+            if 'ContinuationToken' in resp:
                 output['token'] = resp['ContinuationToken']
             else:
                 output['token'] = ''
-            if resp['NextContinuationToken'] is not None:
+            if 'NextContinuationToken' in resp:
                 output['nextToken'] = resp['NextContinuationToken']
             else:
                 output['nextToken'] = ''
@@ -153,11 +153,11 @@ class ObjectListView(APIView):
             numberOfSlash = len(key.split('/')) - 1
             resp = s3.list_objects_v2(
                 Bucket=bName, Prefix=key, Delimiter="/", MaxKeys=maxKeys)
-            if resp['ContinuationToken']:
+            if 'ContinuationToken' in resp:
                 output['token'] = resp['ContinuationToken']
             else:
                 output['token'] = ''
-            if resp['NextContinuationToken']:
+            if 'NextContinuationToken' in resp:
                 output['nextToken'] = resp['NextContinuationToken']
             else:
                 output['nextToken'] = ''
