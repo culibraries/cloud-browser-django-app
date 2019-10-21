@@ -5,8 +5,6 @@ import boto3
 import json
 import uuid
 
-logger = logging.getLogger(__name__)
-
 
 class BucketListView(APIView):
     permission_classes = (IsAuthenticated,)
