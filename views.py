@@ -133,8 +133,14 @@ class ObjectListView(APIView):
             else:
                 resp = s3.list_objects_v2(
                     Bucket=bName, Prefix='', Delimiter="/", MaxKeys=maxKeys)
-            output['token'] = resp['ContinuationToken']
-            output['nextToken'] = resp['NextContinuationToken']
+            if resp['ContinuationToken']:
+                output['token'] = resp['ContinuationToken']
+            else:
+                output['token'] = ''
+            if resp['NextContinuationToken']:
+                output['nextToken'] = resp['NextContinuationToken']
+            else:
+                output['nextToken'] = ''
             if (resp.get('CommonPrefixes') is not None):
                 for item in resp['CommonPrefixes']:
                     folders.append(
@@ -146,9 +152,15 @@ class ObjectListView(APIView):
         else:
             numberOfSlash = len(key.split('/')) - 1
             resp = s3.list_objects_v2(
-                Bucket=bName, Prefix=key, Delimiter="/")
-            output['token'] = resp['ContinuationToken']
-            output['nextToken'] = resp['NextContinuationToken']
+                Bucket=bName, Prefix=key, Delimiter="/", MaxKeys=maxKeys)
+            if resp['ContinuationToken']:
+                output['token'] = resp['ContinuationToken']
+            else:
+                output['token'] = ''
+            if resp['NextContinuationToken']:
+                output['nextToken'] = resp['NextContinuationToken']
+            else:
+                output['nextToken'] = ''
             if (resp.get('CommonPrefixes') is not None):
                 for item in resp['CommonPrefixes']:
                     name = item['Prefix'].split('/')
