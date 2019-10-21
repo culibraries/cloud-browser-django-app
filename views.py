@@ -128,8 +128,10 @@ class ObjectListView(APIView):
             permission = ''
         if (key == '' or key is None):
             if token is not None:
+                print(token)
                 resp = s3.list_objects_v2(
                     Bucket=bName, Prefix='', Delimiter="/", MaxKeys=maxKeys, ContinuationToken=token)
+                print(resp)
             else:
                 resp = s3.list_objects_v2(
                     Bucket=bName, Prefix='', Delimiter="/", MaxKeys=maxKeys)
