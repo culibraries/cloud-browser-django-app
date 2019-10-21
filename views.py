@@ -112,7 +112,7 @@ class ObjectListView(APIView):
         bName = request.GET.get('bname')
         key = request.GET.get('key')
         token = request.GET.get('token')
-        maxKeys = 300
+        maxKeys = 1
         folders = []
         items = []
         output = {
@@ -133,11 +133,11 @@ class ObjectListView(APIView):
             else:
                 resp = s3.list_objects_v2(
                     Bucket=bName, Prefix='', Delimiter="/", MaxKeys=maxKeys)
-            if resp['ContinuationToken']:
+            if resp['ContinuationToken'] is not None:
                 output['token'] = resp['ContinuationToken']
             else:
                 output['token'] = ''
-            if resp['NextContinuationToken']:
+            if resp['NextContinuationToken'] is not None:
                 output['nextToken'] = resp['NextContinuationToken']
             else:
                 output['nextToken'] = ''
