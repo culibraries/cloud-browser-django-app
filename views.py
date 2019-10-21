@@ -1,9 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-import json
 import boto3
+import json
 import uuid
+
+logger = logging.getLogger(__name__)
 
 
 class BucketListView(APIView):
@@ -111,8 +113,15 @@ class ObjectListView(APIView):
         s3 = boto3.client('s3', region_name=region)
         bName = request.GET.get('bname')
         key = request.GET.get('key')
+        token = request.GET.get('token')
+        maxKeys = 300
         folders = []
         items = []
+        output = {
+            'token': '',
+            'nextToken': '',
+            'data': []
+        }
         groups_set = request.user.groups.filter(name__contains=bName)
         if groups_set.exists():
             for g in groups_set:
@@ -120,8 +129,14 @@ class ObjectListView(APIView):
         else:
             permission = ''
         if (key == '' or key is None):
-            resp = s3.list_objects_v2(Bucket=bName, Prefix='', Delimiter="/")
-
+            if token is not None:
+                resp = s3.list_objects_v2(
+                    Bucket=bName, Prefix='', Delimiter="/", MaxKeys=maxKeys, ContinuationToken=token)
+            else:
+                resp = s3.list_objects_v2(
+                    Bucket=bName, Prefix='', Delimiter="/", MaxKeys=maxKeys)
+            output['token'] = resp['ContinuationToken']
+            output['nextToken'] = resp['NextContinuationToken']
             if (resp.get('CommonPrefixes') is not None):
                 for item in resp['CommonPrefixes']:
                     folders.append(
@@ -134,6 +149,8 @@ class ObjectListView(APIView):
             numberOfSlash = len(key.split('/')) - 1
             resp = s3.list_objects_v2(
                 Bucket=bName, Prefix=key, Delimiter="/")
+            output['token'] = resp['ContinuationToken']
+            output['nextToken'] = resp['NextContinuationToken']
             if (resp.get('CommonPrefixes') is not None):
                 for item in resp['CommonPrefixes']:
                     name = item['Prefix'].split('/')
@@ -155,5 +172,5 @@ class ObjectListView(APIView):
                     else:
                         items.append(
                             {'name': out, 'permission': permission, 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '/' + item['Key'], 'path': item['Key']})
-
-        return Response(folders+items)
+        output['data'] = folders + items
+        return Response(output)
