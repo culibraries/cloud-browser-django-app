@@ -36,9 +36,9 @@ class ObjectCreateView(APIView):
 
     def post(self, request):
         region = request.data.get('region')
-        s3 = boto3.client('s3', region_name=region)
+        s3 = boto3.client('s3')
         createObject = s3.put_object(Bucket=request.data.get('bname'),
-                                     Key=request.data.get('key'), Body='', ACL='public-read')
+                                     Key=request.data.get('key'))
         return Response(createObject)
 
 
