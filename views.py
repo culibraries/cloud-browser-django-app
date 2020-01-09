@@ -34,7 +34,7 @@ class BucketListView(APIView):
                         if region is None:
                             region = 'us-east-1'
                         output.append({'_id': str(
-                            uuid.uuid4()), 'name': bucket['Name'], 'permission': g.name.split('-')[-1], 'region': region, 'creation_date': bucket['CreationDate']})
+                            uuid.uuid4()), 'name': bucket['Name'], 'permission': g.split('-')[-1], 'region': region, 'creation_date': bucket['CreationDate']})
         else:
             output = []
         return Response(output)
