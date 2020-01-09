@@ -140,7 +140,7 @@ class ObjectListView(APIView):
         groups_set = [s for s in user_groups if bName in s]
         if len(groups_set) > 0:
             for g in groups_set:
-                permission = g.name('-')[-1]
+                permission = g.split('-')[-1]
         else:
             permission = ''
         if (key == '' or key is None):
