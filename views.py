@@ -129,8 +129,16 @@ class ObjectListView(APIView):
             'nextToken': '',
             'data': []
         }
-        groups_set = request.user.groups.filter(name__contains=bName)
-        if groups_set.exists():
+        user_groups = []
+        for g in request.user.groups.all():
+            user_groups.append(g.name)
+        if 'samlUserdata' in request.session:
+            samlUserdata = request.session['samlUserdata']
+            if "urn:oid:1.3.6.1.4.1.632.11.2.200" in samlUserdata:
+                grouper = samlUserdata['urn:oid:1.3.6.1.4.1.632.11.2.200']
+                user_groups = list(set(user_groups+grouper))
+        groups_set = [s for s in user_groups if bName in s]
+        if len(groups_set) > 0:
             for g in groups_set:
                 permission = g.name.split('-')[-1]
         else:
