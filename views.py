@@ -25,7 +25,7 @@ class BucketListView(APIView):
 
         if len(groups_set) > 0:
             for g in groups_set:
-                arrGroupName = g.name.split('-')[:-1]
+                arrGroupName = g.split('-')[:-1]
                 groupName = '-'.join(arrGroupName)
                 for bucket in response['Buckets']:
                     if groupName == bucket['Name']:
