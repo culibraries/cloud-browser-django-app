@@ -1,9 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from api.views import UserGroups
+from permissions import s3Permission, s3WritePermission
 import boto3
 import json
 import uuid
+import os
 
 
 class BucketListView(APIView):
@@ -11,37 +14,29 @@ class BucketListView(APIView):
 
     def get(self, request):
         s3 = boto3.client('s3')
-        response = s3.list_buckets()
+        buckets = s3.list_buckets()
+        groups=UserGroups(request).groups
+        special_case = os.getenv('UCB_ALL_BUCKETS', '').split(',')
+        groups=groups + special_case
         output = []
-        user_groups = []
-        for g in request.user.groups.all():
-            user_groups.append(g.name)
-        if 'samlUserdata' in request.session:
-            samlUserdata = request.session['samlUserdata']
-            if "urn:oid:1.3.6.1.4.1.632.11.2.200" in samlUserdata:
-                grouper = samlUserdata['urn:oid:1.3.6.1.4.1.632.11.2.200']
-                user_groups = list(set(user_groups+grouper))
-        groups_set = [s for s in user_groups if "cubl" in s]
-
-        if len(groups_set) > 0:
-            for g in groups_set:
-                arrGroupName = g.split('-')[:-1]
-                groupName = '-'.join(arrGroupName)
-                for bucket in response['Buckets']:
-                    if groupName == bucket['Name']:
-                        region = s3.get_bucket_location(Bucket=bucket['Name'])[
-                            'LocationConstraint']
-                        if region is None:
-                            region = 'us-east-1'
-                        output.append({'_id': str(
-                            uuid.uuid4()), 'name': bucket['Name'], 'permission': g.split('-')[-1], 'region': region, 'creation_date': bucket['CreationDate']})
-        else:
-            output = []
+        groupset = [s for s in groups if "cubl-" in s]
+        for bucket in buckets['Buckets']:
+            if "{0}-rw".format(bucket['Name']) in groupset:
+                permission='rw'
+            elif  "{0}-r".format(bucket['Name']) in groupset:
+                permission='r'
+            else:
+                permission=''
+            if permission:
+                region = s3.get_bucket_location(Bucket=bucket['Name'])['LocationConstraint']
+                data={'_id': str(uuid.uuid4()), 'name': bucket['Name'], 'permission': permission,
+                             'region': region, 'creation_date': bucket['CreationDate']}
+                output.append(data)
         return Response(output)
 
 
 class ObjectCreateView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, s3WritePermission)
 
     def post(self, request):
         region = request.data.get('region')
@@ -63,7 +58,7 @@ class PresignedCreateView(APIView):
 
 
 class PresignedCreateURLView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,s3Permission)
 
     def post(self, request):
         region = request.data.get('region')
@@ -80,7 +75,7 @@ class PresignedCreateURLView(APIView):
 
 
 class ObjectUploadView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,s3WritePermission)
 
     def post(self, request):
         region = request.data.get('region')
@@ -91,7 +86,7 @@ class ObjectUploadView(APIView):
 
 
 class ObjectDownloadView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,s3Permission)
 
     def post(self, request):
         region = request.data.get('region')
@@ -102,7 +97,7 @@ class ObjectDownloadView(APIView):
 
 
 class ObjectDeleteView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,s3WritePermission)
 
     def post(self, request):
         region = request.data.get('region')
@@ -113,91 +108,43 @@ class ObjectDeleteView(APIView):
 
 
 class ObjectListView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,s3Permission)
 
+    def getS3data(bName,page_size='5' ,prefix='',resume_token='',region=None):
+        client = boto3.client('s3', region_name=region)
+        paginator = client.get_paginator('list_objects')
+        #Get folders
+        result=paginator.paginate(Bucket=bName, Delimiter='/',Prefix=prefix,PaginationConfig={'MaxItems': 0})
+        folders =[]
+        folders=result.build_full_result()
+        if 'CommonPrefixes' in folders:
+             folders= [d['Prefix'] for d in folders['CommonPrefixes'] if 'Prefix' in d]
+        # Get Items
+        tok=resume_token 
+        result=paginator.paginate(Bucket=bName, Delimiter='/',Prefix=prefix,PaginationConfig={'PageSize': page_size,'MaxItems': page_size,'StartingToken':tok})
+        items=result.build_full_result()['Contents']
+        #remove Owner
+        items=[{k: v for k, v in d.items() if k != 'Owner'} for d in items]
+        # Remove CommonPrefixes
+        items=[i for i in items if not (i['Key'] in prefix)] 
+        next_token=result.resume_token
+        return {"bucketName":bName,"folders":folders,"items":items,"Prefix":prefix,"token":resume_token,"nextToken":next_token,"errorCode":0}
+        
     def get(self, request):
-        region = request.data.get('region')
-        s3 = boto3.client('s3', region_name=region)
+        # Bucket Name
         bName = request.GET.get('bname')
-        key = request.GET.get('key')
-        token = request.GET.get('token')
-        maxKeys = 2000
-        folders = []
-        items = []
-        output = {
-            'token': '',
-            'nextToken': '',
-            'data': []
-        }
-        user_groups = []
-        for g in request.user.groups.all():
-            user_groups.append(g.name)
-        if 'samlUserdata' in request.session:
-            samlUserdata = request.session['samlUserdata']
-            if "urn:oid:1.3.6.1.4.1.632.11.2.200" in samlUserdata:
-                grouper = samlUserdata['urn:oid:1.3.6.1.4.1.632.11.2.200']
-                user_groups = list(set(user_groups+grouper))
-        groups_set = [s for s in user_groups if bName in s]
-        if len(groups_set) > 0:
-            for g in groups_set:
-                permission = g.split('-')[-1]
+        prefix = request.GET.get('prefix','')
+        resume_token = request.GET.get('token','')
+        page_size = request.GET.get('page_size','25')
+        region = request.GET.get('region','')
+        token= request.GET.get('token','')
+        # set permissions
+        groups=UserGroups(request).groups
+        special_case = os.getenv('UCB_ALL_BUCKETS', '').split(',')
+        groups=groups + special_case
+        if "{0}-rw".format(bName) in groups:
+            permissions="rw"
         else:
-            permission = ''
-        if (key == '' or key is None):
-            if token is not None:
-                resp = s3.list_objects_v2(
-                    Bucket=bName, Prefix='', Delimiter="/", MaxKeys=maxKeys, ContinuationToken=token.replace(" ", "+"))
-            else:
-                resp = s3.list_objects_v2(
-                    Bucket=bName, Prefix='', Delimiter="/", MaxKeys=maxKeys)
-            if 'ContinuationToken' in resp:
-                output['token'] = resp['ContinuationToken']
-            else:
-                output['token'] = ''
-            if 'NextContinuationToken' in resp:
-                output['nextToken'] = resp['NextContinuationToken']
-            else:
-                output['nextToken'] = ''
-            if (resp.get('CommonPrefixes') is not None):
-                for item in resp['CommonPrefixes']:
-                    folders.append(
-                        {'name': item['Prefix'], 'permission': permission,  'last_modified': '', 'size': 0, 'full_path': bName + '/' + item['Prefix'], 'path': item['Prefix']})
-            if (resp.get('Contents') is not None):
-                for item in resp['Contents']:
-                    items.append(
-                        {'name': item['Key'], 'permission': permission, 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '/' + item['Key'], 'path': item['Key']})
-        else:
-            numberOfSlash = len(key.split('/')) - 1
-            resp = s3.list_objects_v2(
-                Bucket=bName, Prefix=key, Delimiter="/", MaxKeys=maxKeys)
-            if 'ContinuationToken' in resp:
-                output['token'] = resp['ContinuationToken']
-            else:
-                output['token'] = ''
-            if 'NextContinuationToken' in resp:
-                output['nextToken'] = resp['NextContinuationToken']
-            else:
-                output['nextToken'] = ''
-            if (resp.get('CommonPrefixes') is not None):
-                for item in resp['CommonPrefixes']:
-                    name = item['Prefix'].split('/')
-                    for i in range(numberOfSlash):
-                        del name[0]
-                    out = '/'.join(name)
-                    folders.append(
-                        {'name': out, 'permission': permission, 'last_modified': '', 'size': 0, 'full_path': bName + '/' + item['Prefix'], 'path': item['Prefix']})
-            if (resp.get('Contents') is not None):
-                for item in resp['Contents']:
-                    name = item['Key'].split('/')
-                    for i in range(numberOfSlash):
-                        del name[0]
-                    out = '/'.join(name)
-                    if out == '':
-                        if resp.get('CommonPrefixes') is None:
-                            folders = []
-                            items = []
-                    else:
-                        items.append(
-                            {'name': out, 'permission': permission, 'last_modified': item['LastModified'], 'size': item['Size'], 'full_path': bName + '/' + item['Key'], 'path': item['Key']})
-        output['data'] = folders + items
+            permissions="r"
+        output=self.getS3data(bName, page_size=page_size ,prefix=prefix,resume_token=token,region=region)
         return Response(output)
