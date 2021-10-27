@@ -5,37 +5,31 @@ import os
 
 class s3Permission(permissions.BasePermission):
     """
-    Create Database and Collections permissions.
+    Read/Write Perms S3 buckets
     """
 
     def has_permission(self, request, view):
-        #try:
-        groups=UserGroups(request).groups
+        groups,user_department=UserGroups().groups(request)
         bName = request.GET.get('bname')
-        special_case = os.getenv('UCB_ALL_BUCKETS', '').split(',')
-        groups=groups + special_case
-
+        special_case = os.getenv('UCB_ALL_BUCKETS', '')
+        groups=groups + special_case.split(',')
         if "{0}-rw".format(bName) in groups or "{0}-r".format(bName) in groups:
             return True
         else:
             return False
-        # except:
-        #     return False
 
 class s3WritePermission(permissions.BasePermission):
     """
-    Create Database and Collections permissions.
+    Read/Write Perms S3 buckets
     """
 
     def has_permission(self, request, view):
-        try:
-            groups=UserGroups(request).groups
-            bName = request.GET.get('bname')
-            groups=groups
+        groups,user_department=UserGroups().groups(request)
+        bName = request.GET.get('bname')
+        special_case = os.getenv('UCB_ALL_BUCKETS', '')
+        groups=groups + special_case.split(',')
 
-            if "{0}-rw".format(bName) in groups:
-                return True
-            else:
-                return False
-        except:
+        if "{0}-rw".format(bName) in groups:
+            return True
+        else:
             return False
