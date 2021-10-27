@@ -117,9 +117,15 @@ class ObjectDeleteView(APIView):
         s3 = boto3.client('s3')
         region = s3.get_bucket_location(Bucket=bName)['LocationConstraint']
         s3 = boto3.client('s3', region_name=region)
-        deleteObject = s3.delete_object(Bucket=request.data.get('bname'),
-                                        Key=request.data.get('key'))
-        return Response(deleteObject)
+        delete_keys = {'Objects' : []}
+        for prefix in request.data.get('prefix'):
+            objects_to_delete = s3.meta.client.list_objects(Bucket=bName, Prefix=p)
+            delete_keys['Objects'] = [{'Key' : k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
+            s3.meta.client.delete_objects(Bucket=bName, Delete=delete_keys)
+        for key in request.data.get("keys"):
+            deleteObject = s3.delete_object(Bucket=bName,Key=key)
+        delete_keys=list(set(request.data.get('prefix') + request.data.get("keys") ))
+        return Response(delete_keys)
 
 
 class ObjectListView(APIView):
