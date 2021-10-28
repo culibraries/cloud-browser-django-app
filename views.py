@@ -49,7 +49,7 @@ class ObjectCreateView(APIView):
 
 
 class PresignedCreateView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,s3WritePermission)
 
     def post(self, request):
         bName=request.data.get('bname')
@@ -62,7 +62,7 @@ class PresignedCreateView(APIView):
 
 
 class PresignedCreateURLView(APIView):
-    permission_classes = (IsAuthenticated,s3Permission)
+    permission_classes = (IsAuthenticated,s3WritePermission)
 
     def post(self, request):
         bName=request.data.get('bname')
@@ -95,7 +95,7 @@ class ObjectUploadView(APIView):
 
 
 class ObjectDownloadView(APIView):
-    permission_classes = (IsAuthenticated,s3Permission)
+    permission_classes = (IsAuthenticated,s3WritePermission)
 
     def post(self, request):
         bName=request.data.get('bname')
@@ -116,14 +116,15 @@ class ObjectDeleteView(APIView):
         #Get Bucket Location
         s3 = boto3.client('s3')
         region = s3.get_bucket_location(Bucket=bName)['LocationConstraint']
-        s3 = boto3.client('s3', region_name=region)
+        s3client = boto3.client('s3', region_name=region)
+        s3resource = boto3.resource('s3', region_name=region)
         delete_keys = {'Objects' : []}
-        for prefix in request.data.get('prefix'):
-            objects_to_delete = s3.meta.client.list_objects(Bucket=bName, Prefix=p)
+        for p in request.data.get('prefix'):
+            objects_to_delete = s3resource.meta.client.list_objects(Bucket=bName, Prefix=p)
             delete_keys['Objects'] = [{'Key' : k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
-            s3.meta.client.delete_objects(Bucket=bName, Delete=delete_keys)
+            s3resource.meta.client.delete_objects(Bucket=bName, Delete=delete_keys)
         for key in request.data.get("keys"):
-            deleteObject = s3.delete_object(Bucket=bName,Key=key)
+            deleteObject = s3client.delete_object(Bucket=bName,Key=key)
         delete_keys=list(set(request.data.get('prefix') + request.data.get("keys") ))
         return Response(delete_keys)
 

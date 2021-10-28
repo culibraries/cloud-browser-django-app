@@ -25,9 +25,12 @@ class s3WritePermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         groups,user_department=UserGroups().groups(request)
-        bName = request.GET.get('bname')
+
+        bName = request.data.get('bname')
         special_case = os.getenv('UCB_ALL_BUCKETS', '')
         groups=groups + special_case.split(',')
+        #print(groups)
+        #print(bname)
 
         if "{0}-rw".format(bName) in groups:
             return True
