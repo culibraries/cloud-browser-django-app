@@ -28,7 +28,6 @@ class BucketListView(APIView):
             else:
                 permission=''
             if permission:
-                region = s3.get_bucket_location(Bucket=bucket['Name'])['LocationConstraint']
                 data={ 'name': bucket['Name'], 'permission': permission,
                         'creation_date': bucket['CreationDate']}
                 output.append(data)
@@ -62,7 +61,7 @@ class PresignedCreateView(APIView):
 
 
 class PresignedCreateURLView(APIView):
-    permission_classes = (IsAuthenticated,s3WritePermission)
+    permission_classes = (IsAuthenticated,s3Permission)
 
     def post(self, request):
         bName=request.data.get('bname')
@@ -79,34 +78,6 @@ class PresignedCreateURLView(APIView):
             ExpiresIn=request.data.get('expires')
         )
         return Response(url)
-
-
-class ObjectUploadView(APIView):
-    permission_classes = (IsAuthenticated,s3WritePermission)
-
-    def post(self, request):
-        bName=request.data.get('bname')
-        #Get Bucket Location
-        s3 = boto3.client('s3')
-        region = s3.get_bucket_location(Bucket=bName)['LocationConstraint']
-        s3 = boto3.client('s3', region_name=region)
-        uploadObject = s3.upload_file(request.data.get('fname'), bName, request.data.get('key'))
-        return Response(uploadObject)
-
-
-class ObjectDownloadView(APIView):
-    permission_classes = (IsAuthenticated,s3WritePermission)
-
-    def post(self, request):
-        bName=request.data.get('bname')
-        #Get Bucket Location
-        s3 = boto3.client('s3')
-        region = s3.get_bucket_location(Bucket=bName)['LocationConstraint']
-        s3 = boto3.client('s3', region_name=region)
-        downloadObject = s3.download_file(bName, request.data.get(
-            'key'), request.data.get('fname'))
-        return Response(downloadObject)
-
 
 class ObjectDeleteView(APIView):
     permission_classes = (IsAuthenticated,s3WritePermission)
