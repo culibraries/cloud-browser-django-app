@@ -18,12 +18,10 @@ class BucketListView(APIView):
         buckets = s3.list_buckets()
         groups,user_department=UserGroups().groups(request)
         special_case = os.getenv('UCB_ALL_BUCKETS', '').split(',')
-        print(special_case)
         groups=groups + special_case
         output = []
         groupset = [s for s in groups if "cubl-" in s]
         for bucket in buckets['Buckets']:
-            print(bucket)
             if "{0}-rw".format(bucket['Name']) in groupset:
                 permission='rw'
             elif  "{0}-r".format(bucket['Name']) in groupset:
