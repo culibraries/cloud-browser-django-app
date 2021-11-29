@@ -55,7 +55,7 @@ class ObjectCreateView(APIView):
 
 
 class PresignedCreateView(APIView):
-    permission_classes = (IsAuthenticated,s3Permission)
+    permission_classes = (IsAuthenticated,s3WritePermission)
 
     def post(self, request):
         bName=request.data.get('bname')
