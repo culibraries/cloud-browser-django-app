@@ -155,7 +155,7 @@ class ObjectListView(APIView):
         bName = request.data.get('bname')
         prefix = request.data.get('prefix','')
         default_page_size='150'
-        page_size = request.data.get('page_size',default_page_size)
+        page_size = str(request.data.get('page_size',default_page_size))
         if not page_size.isdigit():
             page_size = default_page_size
         token= request.data.get('token','')
