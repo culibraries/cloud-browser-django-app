@@ -7,6 +7,7 @@ import boto3
 import json
 import uuid
 import os
+import textwrap, hashlib
 
 
 class BucketListView(APIView):
@@ -27,9 +28,15 @@ class BucketListView(APIView):
                 permission='r'
             else:
                 permission=''
+            if "{0}-r".format(bucket['Name']) in special_case:
+                exclude=True
+                if not permission == 'rw':
+                    permission='r'
+            else:
+                exclude=False
             if permission:
                 data={ 'name': bucket['Name'], 'permission': permission,
-                        'creation_date': bucket['CreationDate']}
+                        'creation_date': bucket['CreationDate'],'exclude':exclude}
                 output.append(data)
         return Response(output)
 
@@ -103,7 +110,12 @@ class ObjectDeleteView(APIView):
 class ObjectListView(APIView):
     permission_classes = (IsAuthenticated,s3Permission)
 
-    def getS3data(self,bName,page_size,prefix,resume_token,region):
+    def genHash(self,key,split=7):
+        r=hashlib.md5(key.encode())
+        hashpath="/".join(textwrap.wrap(r.hexdigest(),split))
+        return hashpath
+
+    def getS3data(self,request,bName,page_size,prefix,resume_token,region):
         client = boto3.client('s3', region_name=region)
         paginator = client.get_paginator('list_objects')
         #Get folders
@@ -124,29 +136,45 @@ class ObjectListView(APIView):
             items=[{k: v for k, v in d.items() if k != 'Owner'} for d in items]
             # Remove CommonPrefixes
             items=[i for i in items if not (i['Key'] in prefix)] 
+            # Add Thumbnail
+            thumbnail_buckets = os.getenv('UCB_THUMBNAIL_BUCKETS', '').split(',')
+            if bName in thumbnail_buckets:
+                base_url = request.build_absolute_uri('/')[:-1]
+                temp=[]
+                for d in items:
+                    hashpath=self.genHash("{0}/{1}".format(bName,d['Key']))
+                    d['thumbnail']="{0}/static/thumbnails/{1}/thumbnail.png".format(base_url,hashpath)
+                    temp.append(d)
+                items=temp
             if 'NextToken' in result:
                 next_token=result['NextToken']
         return {"bucketName":bName,"folders":folders,"items":items,"Prefix":prefix,"token":resume_token,"nextToken":next_token}
      
-    def get(self, request):
+    def post(self, request):
         # Bucket Name
-        bName = request.GET.get('bname')
-        prefix = request.GET.get('prefix','')
-        default_page_size='50'
-        page_size = request.GET.get('page_size',default_page_size)
+        bName = request.data.get('bname')
+        prefix = request.data.get('prefix','')
+        default_page_size='150'
+        page_size = request.data.get('page_size',default_page_size)
         if not page_size.isdigit():
             page_size = default_page_size
-        token= request.GET.get('token','')
+        token= request.data.get('token','')
         # set permissions
         groups,user_department=UserGroups().groups(request)
         special_case = os.getenv('UCB_ALL_BUCKETS', '').split(',')
+        license_case = os.getenv('UCB_LICENSE_BUCKETS', '').split(',')
         groups=groups + special_case
         if "{0}-rw".format(bName) in groups:
             permissions="rw"
+            
         else:
             permissions="r"
+        licensed=False
+        if bName in license_case:
+            licensed=True
         s3 = boto3.client('s3')
         region = s3.get_bucket_location(Bucket=bName)['LocationConstraint']
-        output=self.getS3data(bName, page_size ,prefix,token,region)
+        output=self.getS3data(request,bName, page_size ,prefix,token,region)
         output['permission']= permissions
+        output['licensed']=licensed
         return Response(output)
